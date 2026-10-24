@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { SAFE_IGNORE_LIST, scanProject } from '../src/scanner.ts';
-import { scaffoldModule, validateModuleName } from '../src/generator/scaffolder.ts';
-import { getNaming, laravelModelTemplate } from '../src/templates/laravel.ts';
-import { tsRepositoryTemplate, tsControllerTemplate, tsDtoTemplate } from '../src/templates/typescript.ts';
-import { mdCell, fence, mermaidLabel, generateArchitectureMarkdown } from '../src/generator/markdown.ts';
-import { detectProjectType } from '../src/detector.ts';
-import type { ProjectInfo } from '../src/detector.ts';
+import { SAFE_IGNORE_LIST, scanProject } from '../src/scanner.js';
+import { scaffoldModule, validateModuleName } from '../src/generator/scaffolder.js';
+import { getNaming, laravelModelTemplate } from '../src/templates/laravel.js';
+import { tsRepositoryTemplate, tsControllerTemplate, tsDtoTemplate } from '../src/templates/typescript.js';
+import { mdCell, fence, mermaidLabel, generateArchitectureMarkdown } from '../src/generator/markdown.js';
+import { detectProjectType } from '../src/detector.js';
+import type { ProjectInfo } from '../src/detector.js';
 
 test('P1-9: SAFE_IGNORE_LIST contains all required secret and key patterns', () => {
   const patterns = SAFE_IGNORE_LIST;

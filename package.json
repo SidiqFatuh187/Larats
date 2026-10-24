@@ -1,6 +1,6 @@
 {
   "name": "larats",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Smart Architecture Visualizer & Contextual Module Scaffolder CLI for Laravel and TypeScript projects",
   "keywords": [
     "larats",
@@ -24,9 +24,6 @@
     "url": "https://github.com/SidiqFatuh187/Larats/issues"
   },
   "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
   "bin": {
     "larats": "dist/index.js"
   },
@@ -38,9 +35,10 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "lint": "tsc --noEmit",
+    "lint": "tsc --noEmit -p tsconfig.check.json",
+    "prepublishOnly": "npm run lint && npm test && npm run build",
     "start": "node dist/index.js",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "node scripts/run-tests.mjs"
   },
   "dependencies": {
     "@clack/prompts": "^0.10.1",
@@ -54,6 +52,6 @@
     "typescript": "^5.7.3"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.3.0"
   }
 }

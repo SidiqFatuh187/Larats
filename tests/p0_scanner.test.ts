@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { scaffoldModule } from '../src/generator/scaffolder.ts';
-import { scanProject } from '../src/scanner.ts';
-import { detectProjectType, type ProjectInfo } from '../src/detector.ts';
+import { scaffoldModule } from '../src/generator/scaffolder.js';
+import { scanProject } from '../src/scanner.js';
+import { detectProjectType, type ProjectInfo } from '../src/detector.js';
 
 test('P0-3: Scanner detects modular Laravel components and excludes loose files from modules', async () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'larats-p0-3-'));

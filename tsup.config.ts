@@ -5,8 +5,8 @@ const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
 
 export default defineConfig({
   entry: ['src/index.ts'],
-  format: ['esm', 'cjs'],
-  dts: true,
+  format: ['esm'],
+  dts: false,
   clean: true,
   sourcemap: true,
   define: {

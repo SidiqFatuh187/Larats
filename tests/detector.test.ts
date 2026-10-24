@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { detectProjectType } from '../src/detector.ts';
+import { detectProjectType } from '../src/detector.js';
 
 test('detectProjectType identifies Laravel project with Filament and Livewire', async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'archmind-laravel-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'larats-laravel-'));
 
   try {
     // Create artisan file
@@ -42,7 +42,7 @@ test('detectProjectType identifies Laravel project with Filament and Livewire', 
 });
 
 test('detectProjectType identifies TypeScript project with Express and Prisma', async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'archmind-ts-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'larats-ts-'));
 
   try {
     // Create tsconfig.json
@@ -82,7 +82,7 @@ test('detectProjectType identifies TypeScript project with Express and Prisma', 
 });
 
 test('detectProjectType falls back to unknown for generic folder', async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'archmind-unknown-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'larats-unknown-'));
 
   try {
     fs.writeFileSync(path.join(tempDir, 'random.txt'), 'hello');

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateMermaidDiagram, generateArchitectureMarkdown } from '../src/generator/markdown.ts';
-import type { ScanResult } from '../src/scanner.ts';
+import { generateMermaidDiagram, generateArchitectureMarkdown } from '../src/generator/markdown.js';
+import type { ScanResult } from '../src/scanner.js';
 
 test('generateMermaidDiagram creates valid Laravel flowchart with Filament and Modules', () => {
   const scanResult: ScanResult = {

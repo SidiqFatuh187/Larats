@@ -6,7 +6,7 @@
 [![npm version](https://img.shields.io/npm/v/larats.svg)](https://www.npmjs.com/package/larats)
 [![CI](https://github.com/SidiqFatuh187/Larats/actions/workflows/ci.yml/badge.svg)](https://github.com/SidiqFatuh187/Larats/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.3.0-brightgreen.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![Offline First](https://img.shields.io/badge/Security-100%25%20Offline-success.svg)](#-strict-security--safety-guarantees)
 
@@ -49,15 +49,15 @@ larats
 ## ✨ Key Features
 
 ### 1. 🔍 Auto-Detection & Safe Scanner
-LaraTS inspects configuration files to detect your stack:
-- **Laravel**: Detects Laravel version, Filament Admin panel, Livewire, Inertia.js, Sanctum, and Modular architecture.
-- **TypeScript**: Detects Express, NestJS, Fastify, Next.js, React, Prisma ORM, TypeORM, Drizzle, Monorepos, and Modular setups.
+LaraTS safely inspects root manifest files (`package.json`, `composer.json`, `tsconfig.json`) solely to detect your framework and architectural stack, without parsing application logic or reading `.env*` secrets:
+- **Laravel**: Detects Laravel version (10.x vs 11+), Filament Admin panel, Livewire, Inertia.js, Sanctum, and Modular architecture (`app/Modules/`, `modules/`, `Modules/`).
+- **TypeScript**: Detects Express, NestJS, Fastify, Next.js, React, Prisma ORM, TypeORM, Drizzle, Monorepos (`apps/*/src`, `packages/*/src`), and Modular setups (`src/modules/`).
 
 When you run `larats scan`:
 - Indexes architectural components (Counts and samples).
 - Builds a clean, high-level directory tree.
-- Generates an interactive **Mermaid.js flowchart (`flowchart TD`)** showing the entire request lifecycle across layers.
-- Outputs a comprehensive `ARCHITECTURE.md` file.
+- Generates an interactive **Mermaid.js flowchart (`flowchart TD`)** showing the entire request lifecycle across layers, dynamically adapting to CLI applications or web services.
+- Outputs a deterministic, diff-friendly `ARCHITECTURE.md` file.
 
 ### 2. 🏗️ Contextual Module Scaffolder
 Create new features in seconds with consistent boilerplate:
@@ -132,6 +132,14 @@ larats scaffold Payment --modular
 # Dry-run test scaffolding without writing files
 larats scaffold Order --dry-run
 ```
+
+---
+
+## ⚠️ Limitations & Notes
+
+- **Express Boilerplate**: For TypeScript projects, the scaffolder generates Express-compatible controllers and routers. If using NestJS, Fastify, or Next.js, use the generated domain logic (DTOs, Repositories, Services) and adapt HTTP routing accordingly.
+- **Route Registration**: LaraTS does not automatically alter your main entrypoint files (`routes/api.php`, `src/app.ts`). Recommended mounting code is displayed in next steps upon scaffold completion.
+- **Conventions**: Module and component detection relies on standard industry conventions (`app/Modules/`, `src/modules/`, `apps/*/src/`, etc.). Non-standard custom layouts may fall back to generic source classification.
 
 ---
 

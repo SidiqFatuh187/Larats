@@ -8,7 +8,7 @@ import {
   laravelActionTemplate,
   laravelRequestTemplate,
   laravelMigrationTemplate,
-} from '../src/templates/laravel.ts';
+} from '../src/templates/laravel.js';
 
 test('P0-1: Laravel templates preserve backslashes in Illuminate namespace imports', () => {
   const names = getNaming('Payment');

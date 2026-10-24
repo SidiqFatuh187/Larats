@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { scanProject, buildCleanDirectoryTree, SAFE_IGNORE_LIST } from '../src/scanner.ts';
-import type { ProjectInfo } from '../src/detector.ts';
+import { scanProject, buildCleanDirectoryTree, SAFE_IGNORE_LIST } from '../src/scanner.js';
+import type { ProjectInfo } from '../src/detector.js';
 
 test('scanner strictly ignores sensitive files, secrets, node_modules, and logs', async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'archmind-safe-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'larats-safe-'));
 
   try {
     // Legitimate files
@@ -55,7 +55,7 @@ test('scanner strictly ignores sensitive files, secrets, node_modules, and logs'
 });
 
 test('scanner correctly categorizes Laravel components and modules', async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'archmind-laravel-components-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'larats-laravel-components-'));
 
   try {
     fs.mkdirSync(path.join(tempDir, 'app', 'Models'), { recursive: true });
@@ -111,7 +111,7 @@ test('scanner correctly categorizes Laravel components and modules', async () =>
 });
 
 test('scanner correctly categorizes TypeScript modular components', async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'archmind-ts-components-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'larats-ts-components-'));
 
   try {
     fs.mkdirSync(path.join(tempDir, 'src', 'modules', 'auth'), { recursive: true });

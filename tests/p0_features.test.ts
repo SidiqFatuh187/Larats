@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { scaffoldModule } from '../src/generator/scaffolder.ts';
-import { generateArchitectureMarkdown, generateMermaidDiagram } from '../src/generator/markdown.ts';
-import type { ScanResult } from '../src/scanner.ts';
-import type { ProjectInfo } from '../src/detector.ts';
+import { scaffoldModule } from '../src/generator/scaffolder.js';
+import { generateArchitectureMarkdown, generateMermaidDiagram } from '../src/generator/markdown.js';
+import type { ScanResult } from '../src/scanner.js';
+import type { ProjectInfo } from '../src/detector.js';
 
 test('P0-5: Scaffolding twice does not create duplicate migrations', async () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'larats-p0-5-'));

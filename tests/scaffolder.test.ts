@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { scaffoldModule } from '../src/generator/scaffolder.ts';
-import type { ProjectInfo } from '../src/detector.ts';
+import { scaffoldModule } from '../src/generator/scaffolder.js';
+import type { ProjectInfo } from '../src/detector.js';
 
 test('scaffolds Laravel standard components with correct boilerplate', async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'archmind-scaffold-laravel-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'larats-scaffold-laravel-'));
 
   try {
     const projectInfo: ProjectInfo = {
@@ -67,7 +67,7 @@ test('scaffolds Laravel standard components with correct boilerplate', async () 
 });
 
 test('scaffolds Laravel modular components under app/Modules/<Name>', async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'archmind-scaffold-laravel-mod-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'larats-scaffold-laravel-mod-'));
 
   try {
     const projectInfo: ProjectInfo = {
@@ -105,7 +105,7 @@ test('scaffolds Laravel modular components under app/Modules/<Name>', async () =
 });
 
 test('scaffolds TypeScript modular components under src/modules/<name>', async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'archmind-scaffold-ts-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'larats-scaffold-ts-'));
 
   try {
     const projectInfo: ProjectInfo = {
@@ -150,7 +150,7 @@ test('scaffolds TypeScript modular components under src/modules/<name>', async (
 });
 
 test('ANTI-OVERWRITE PROTECTION: existing files are safely preserved and skipped', async () => {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'archmind-anti-overwrite-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'larats-anti-overwrite-'));
 
   try {
     const projectInfo: ProjectInfo = {
