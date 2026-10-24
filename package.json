@@ -17,7 +17,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/SidiqFatuh187/Larats.git"
+    "url": "git+https://github.com/SidiqFatuh187/Larats.git"
   },
   "homepage": "https://github.com/SidiqFatuh187/Larats#readme",
   "bugs": {
@@ -28,7 +28,7 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "larats": "./dist/index.js"
+    "larats": "dist/index.js"
   },
   "files": [
     "dist",
