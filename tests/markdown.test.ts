@@ -34,8 +34,8 @@ test('generateMermaidDiagram creates valid Laravel flowchart with Filament and M
   const mermaid = generateMermaidDiagram(scanResult);
 
   assert.match(mermaid, /^flowchart TD/);
-  assert.match(mermaid, /subgraph Layer1/);
-  assert.match(mermaid, /Filament Admin Panel/);
+  assert.match(mermaid, /subgraph EntryLayer/);
+  assert.match(mermaid, /Filament Admin Resources/);
   assert.match(mermaid, /Actions\["Action Classes/);
   assert.match(mermaid, /subgraph ModulesLayer/);
   assert.match(mermaid, /Catalog Module/);
@@ -82,6 +82,6 @@ test('generateArchitectureMarkdown generates complete markdown with security not
   assert.match(md, /## 🔒 Security & Privacy Notice/);
   assert.match(md, /Zero Network Transmission/);
   assert.match(md, /Safe Exclusion Filter/);
-  assert.match(md, /Metadata Only/);
+  assert.match(md, /Manifest & Structure Only/);
 });
 

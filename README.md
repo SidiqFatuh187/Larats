@@ -3,6 +3,8 @@
 > **Smart Architecture Visualizer & Contextual Module Scaffolder CLI**  
 > Tailor-made for **Laravel** & **TypeScript** (Node.js / Express / React / Monorepo) projects.
 
+[![npm version](https://img.shields.io/npm/v/larats.svg)](https://www.npmjs.com/package/larats)
+[![CI](https://github.com/SidiqFatuh187/Larats/actions/workflows/ci.yml/badge.svg)](https://github.com/SidiqFatuh187/Larats/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
@@ -12,7 +14,7 @@
 
 ## 💡 What is LaraTS?
 
-When codebases grow large, developers often struggle to understand the architecture or keep module structures consistent across teams. **LaraTS** solves this with two core capabilities:
+When codebases grow large, developers often struggle to understand the architecture or keep module structures consistent across teams. **LaraTS** solves this with three core pillars:
 
 1. 🔍 **Architecture Scanner & Visualizer (`scan`)**: Instantly scans your repository, categorizes layers (Models, Controllers, Services, Actions, Filament Resources, Routes, etc.), and generates a clean `ARCHITECTURE.md` with an interactive **Mermaid.js flowchart** and directory tree.
 2. 🏗️ **Contextual Module Scaffolder (`scaffold` / `make`)**: Quickly generates cohesive feature modules with clean, production-ready boilerplate code tailored to your exact stack (Laravel or TypeScript).
@@ -91,7 +93,7 @@ LaraTS was engineered from the ground up for strict security:
   - Never reads or includes `**/node_modules/**`, `**/vendor/**`, `**/.git/**`, `**/storage/**`, `**/dist/**`, `**/build/**`.
   - Never exposes environment files: `**/.env*`, `**/*.pem`, `**/*.key`, `**/*.pfx`, `**/*.cert`.
   - Never indexes lock/log files: `**/*.log`, `**/*.lock`, `package-lock.json`, `pnpm-lock.yaml`, `composer.lock`.
-- **Metadata Only**: Scanner only analyzes file paths and relative folder structures; no private application configurations or secrets are extracted.
+- **Manifest & Structure Only**: Scanner safely inspects package manifests (`package.json`, `composer.json`) solely to identify framework and ORM types, and relative file paths to categorize layers. It never reads private configuration values, `.env*` secrets, or internal application logic.
 
 ---
 

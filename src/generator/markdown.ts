@@ -1,7 +1,8 @@
 import type { ScanResult } from '../scanner.js';
 
 /**
- * Generate a Mermaid.js diagram representing the architecture layers and flow.
+ * Generate a dynamic Mermaid.js diagram representing only the components and layers
+ * that actually exist in the scanned codebase.
  */
 export function generateMermaidDiagram(scanResult: ScanResult): string {
   const { projectInfo, components, modules } = scanResult;
@@ -10,6 +11,9 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
     const hasFilament = projectInfo.laravel?.hasFilament || (components['Filament Resources']?.count ?? 0) > 0;
     const hasActions = (components['Actions']?.count ?? 0) > 0;
     const hasServices = (components['Services']?.count ?? 0) > 0;
+    const hasRequests = (components['Form Requests']?.count ?? 0) > 0;
+    const hasModels = (components['Models']?.count ?? 0) > 0;
+    const hasMigrations = (components['Migrations']?.count ?? 0) > 0;
 
     let diagram = `flowchart TD
     %% Styling Definitions
@@ -20,65 +24,113 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
     classDef data fill:#FEE2E2,stroke:#DC2626,stroke-width:2px,color:#B91C1C;
     classDef db fill:#F1F5F9,stroke:#475569,stroke-width:2px,color:#334155;
 
-    subgraph Layer1 ["1. Client & Entrypoints"]
+    subgraph EntryLayer ["1. Client & Entrypoints"]
         Client["Client / Browser / API Consumer"]:::client
         Routes["HTTP Routes<br/>(routes/web.php, routes/api.php)"]:::routing
     end
+`;
 
-    subgraph Layer2 ["2. Request Pipeline & Security"]
+    if (hasRequests) {
+      diagram += `
+    subgraph RequestLayer ["2. Request Pipeline & Validation"]
         Middleware["Middleware Pipeline<br/>(Auth, CSRF, Rate Limiting)"]:::routing
         FormRequests["Form Requests<br/>(Validation & Authorization)"]:::routing
     end
+`;
+    }
 
-    subgraph Layer3 ["3. Controllers & Presentation"]
+    diagram += `
+    subgraph HttpLayer ["3. Controllers & Presentation"]
         Controllers["HTTP Controllers<br/>(app/Http/Controllers)"]:::controller
 `;
-
     if (hasFilament) {
-      diagram += `        Filament["Filament Admin Panel<br/>(app/Filament/Resources)"]:::controller\n`;
+      diagram += `        Filament["Filament Admin Resources<br/>(app/Filament/Resources)"]:::controller\n`;
     }
+    diagram += `    end\n`;
 
-    diagram += `    end
-
-    subgraph Layer4 ["4. Domain & Business Logic"]
+    if (hasServices || hasActions) {
+      diagram += `
+    subgraph DomainLayer ["4. Domain & Business Logic"]
 `;
-
-    if (hasServices || !hasActions) {
-      diagram += `        Services["Service Layer<br/>(app/Services)"]:::service\n`;
+      if (hasServices) {
+        diagram += `        Services["Service Classes<br/>(app/Services)"]:::service\n`;
+      }
+      if (hasActions) {
+        diagram += `        Actions["Action Classes<br/>(app/Actions)"]:::service\n`;
+      }
+      diagram += `    end\n`;
     }
-    if (hasActions) {
-      diagram += `        Actions["Action Classes<br/>(app/Actions)"]:::service\n`;
-    }
 
-    diagram += `    end
-
-    subgraph Layer5 ["5. Data Persistence & Storage"]
-        Models["Eloquent Models<br/>(app/Models)"]:::data
-        Database[("Database<br/>(MySQL / Postgres / SQLite)")]:::db
-        Migrations["Database Migrations<br/>(database/migrations)"]:::data
-    end
-
-    Client --> Routes
-    Routes --> Middleware
-    Middleware --> FormRequests
-    FormRequests --> Controllers
+    diagram += `
+    subgraph DataLayer ["5. Data Persistence & Storage"]
 `;
+    if (hasModels) {
+      diagram += `        Models["Eloquent Models<br/>(app/Models)"]:::data\n`;
+    }
+    diagram += `        Database[("Database<br/>(MySQL / Postgres / SQLite)")]:::db\n`;
+    if (hasMigrations) {
+      diagram += `        Migrations["Database Migrations<br/>(database/migrations)"]:::data\n`;
+    }
+    diagram += `    end\n\n`;
+
+    // Connect nodes dynamically
+    diagram += `    Client --> Routes\n`;
+
+    if (hasRequests) {
+      diagram += `    Routes --> Middleware\n`;
+      diagram += `    Middleware --> FormRequests\n`;
+      diagram += `    FormRequests --> Controllers\n`;
+    } else {
+      diagram += `    Routes --> Controllers\n`;
+    }
 
     if (hasServices && hasActions) {
-      diagram += `    Controllers --> Services\n    Controllers --> Actions\n    Services --> Models\n    Actions --> Models\n`;
+      diagram += `    Controllers --> Services\n`;
+      diagram += `    Controllers --> Actions\n`;
+      if (hasModels) {
+        diagram += `    Services --> Models\n`;
+        diagram += `    Actions --> Models\n`;
+      } else {
+        diagram += `    Services --> Database\n`;
+        diagram += `    Actions --> Database\n`;
+      }
+    } else if (hasServices) {
+      diagram += `    Controllers --> Services\n`;
+      if (hasModels) {
+        diagram += `    Services --> Models\n`;
+      } else {
+        diagram += `    Services --> Database\n`;
+      }
     } else if (hasActions) {
-      diagram += `    Controllers --> Actions\n    Actions --> Models\n`;
+      diagram += `    Controllers --> Actions\n`;
+      if (hasModels) {
+        diagram += `    Actions --> Models\n`;
+      } else {
+        diagram += `    Actions --> Database\n`;
+      }
     } else {
-      diagram += `    Controllers --> Services\n    Services --> Models\n`;
+      if (hasModels) {
+        diagram += `    Controllers --> Models\n`;
+      } else {
+        diagram += `    Controllers --> Database\n`;
+      }
     }
 
     if (hasFilament) {
-      diagram += `    Client --> Filament\n    Filament --> Models\n`;
+      if (hasModels) {
+        diagram += `    Client --> Filament\n    Filament --> Models\n`;
+      } else {
+        diagram += `    Client --> Filament\n    Filament --> Database\n`;
+      }
     }
 
-    diagram += `    Models --> Database\n    Migrations -.-> Database\n`;
+    if (hasModels) {
+      diagram += `    Models --> Database\n`;
+    }
+    if (hasMigrations) {
+      diagram += `    Migrations -.-> Database\n`;
+    }
 
-    // If modular Laravel
     if (modules.length > 0) {
       diagram += `\n    subgraph ModulesLayer ["📦 Detected Modules (${modules.length})"]\n`;
       modules.slice(0, 6).forEach((mod, idx) => {
@@ -94,8 +146,20 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
   }
 
   if (projectInfo.type === 'typescript') {
-    const fw = projectInfo.typescript?.framework || 'Express';
-    const orm = projectInfo.typescript?.hasPrisma ? 'Prisma' : projectInfo.typescript?.hasTypeORM ? 'TypeORM' : 'ORM';
+    const rawFw = projectInfo.typescript?.framework || 'express';
+    const fwDisplay =
+      rawFw !== 'unknown' && rawFw !== 'node-vanilla'
+        ? `${rawFw.charAt(0).toUpperCase() + rawFw.slice(1)} Router`
+        : 'API Endpoints & Handlers';
+
+    const orm = projectInfo.typescript?.hasPrisma ? 'Prisma' : projectInfo.typescript?.hasTypeORM ? 'TypeORM' : projectInfo.typescript?.hasDrizzle ? 'Drizzle' : null;
+
+    const hasControllers = (components['Controllers']?.count ?? 0) > 0;
+    const hasServices = (components['Services']?.count ?? 0) > 0;
+    const hasRepositories = (components['Repositories']?.count ?? 0) > 0;
+    const hasDtos = (components['DTOs & Schemas']?.count ?? 0) > 0;
+    const hasUi = (components['UI Components']?.count ?? 0) > 0;
+    const hasModels = (components['Models & Entities']?.count ?? 0) > 0;
 
     let diagram = `flowchart TD
     %% Styling Definitions
@@ -106,37 +170,87 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
     classDef data fill:#FEE2E2,stroke:#DC2626,stroke-width:2px,color:#B91C1C;
     classDef db fill:#F1F5F9,stroke:#475569,stroke-width:2px,color:#334155;
 
-    subgraph Layer1 ["1. Client & API Gateway"]
+    subgraph EntryLayer ["1. Client & API Gateway"]
         Client["Frontend / API Client"]:::client
-        Router["Router & Endpoints<br/>(${fw} Routes)"]:::routing
+        Router["Router & Endpoints<br/>(${fwDisplay})"]:::routing
     end
+`;
 
-    subgraph Layer2 ["2. Validation & Guards"]
-        Middleware["Auth & Error Middleware"]:::routing
+    if (hasUi) {
+      diagram += `
+    subgraph UiLayer ["Frontend Presentation"]
+        UiComponents["UI Components<br/>(src/components)"]:::controller
+    end
+`;
+    }
+
+    if (hasDtos) {
+      diagram += `
+    subgraph ValidationLayer ["2. Validation & Schemas"]
         DTOs["DTOs & Schemas<br/>(Input Validation)"]:::routing
     end
+`;
+    }
 
-    subgraph Layer3 ["3. Controllers"]
+    if (hasControllers) {
+      diagram += `
+    subgraph ControllerLayer ["3. Controllers"]
         Controllers["Controllers<br/>(Request Handling)"]:::controller
     end
+`;
+    }
 
-    subgraph Layer4 ["4. Application Services"]
+    if (hasServices) {
+      diagram += `
+    subgraph ServiceLayer ["4. Application Services"]
         Services["Domain Services<br/>(Business Logic)"]:::service
     end
-
-    subgraph Layer5 ["5. Data Layer & Storage"]
-        Repositories["Repositories / ${orm}<br/>(Data Access Layer)"]:::data
-        Database[("Database<br/>(SQL / NoSQL)")]:::db
-    end
-
-    Client --> Router
-    Router --> Middleware
-    Middleware --> DTOs
-    DTOs --> Controllers
-    Controllers --> Services
-    Services --> Repositories
-    Repositories --> Database
 `;
+    }
+
+    diagram += `
+    subgraph PersistenceLayer ["5. Data Layer & Storage"]
+`;
+    if (hasRepositories) {
+      diagram += `        Repositories["Repositories / Data Access<br/>(${orm || 'Data Layer'})"]:::data\n`;
+    } else if (hasModels) {
+      diagram += `        Entities["Models & Entities<br/>(${orm || 'ORM'})"]:::data\n`;
+    }
+    diagram += `        Database[("Database / Storage")]:::db\n`;
+    diagram += `    end\n\n`;
+
+    // Dynamic Connections
+    diagram += `    Client --> Router\n`;
+    if (hasUi) {
+      diagram += `    Client --> UiComponents\n`;
+      diagram += `    UiComponents --> Router\n`;
+    }
+
+    let previousNode = 'Router';
+    if (hasDtos) {
+      diagram += `    ${previousNode} --> DTOs\n`;
+      previousNode = 'DTOs';
+    }
+
+    if (hasControllers) {
+      diagram += `    ${previousNode} --> Controllers\n`;
+      previousNode = 'Controllers';
+    }
+
+    if (hasServices) {
+      diagram += `    ${previousNode} --> Services\n`;
+      previousNode = 'Services';
+    }
+
+    if (hasRepositories) {
+      diagram += `    ${previousNode} --> Repositories\n`;
+      diagram += `    Repositories --> Database\n`;
+    } else if (hasModels) {
+      diagram += `    ${previousNode} --> Entities\n`;
+      diagram += `    Entities --> Database\n`;
+    } else {
+      diagram += `    ${previousNode} --> Database\n`;
+    }
 
     if (modules.length > 0) {
       diagram += `\n    subgraph ModulesLayer ["📦 Detected Feature Modules (${modules.length})"]\n`;
@@ -152,20 +266,20 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
     return diagram;
   }
 
-  // Generic diagram
+  // Generic / CLI projects
   return `flowchart TD
     classDef client fill:#E0F2FE,stroke:#0284C7,stroke-width:2px,color:#0369A1;
     classDef core fill:#DCFCE7,stroke:#16A34A,stroke-width:2px,color:#15803D;
     classDef test fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#B45309;
 
-    subgraph App ["Application Architecture"]
-        Entry["Entrypoint / CLI"]:::client
-        Source["Source Core Logic (src/)"]:::core
-        Tests["Test Suites"]:::test
+    subgraph App ["CLI & Application Architecture"]
+        Entry["Entrypoint CLI (bin/)"]:::client
+        Core["Core Modules & Generators (src/)"]:::core
+        Tests["Automated Test Suites (tests/)"]:::test
     end
 
-    Entry --> Source
-    Tests -.-> Source
+    Entry --> Core
+    Tests -.-> Core
 `;
 }
 
@@ -202,7 +316,7 @@ ${modules.map((m) => `- **\`${m}\`**`).join('\n')}
   return `# 🏛️ Architecture Overview: ${projectInfo.name}
 
 > Auto-generated by **[LaraTS CLI](https://github.com/SidiqFatuh187/Larats)** on \`${timestamp}\`.  
-> **100% Local & Safe:** Generated entirely in offline mode via local filesystem metadata analysis. Zero data transmitted.
+> **100% Local & Safe:** Generated entirely in offline mode via local filesystem manifest & structure analysis. Zero data transmitted.
 
 ---
 
@@ -248,12 +362,11 @@ ${directoryTree || '(Empty directory structure)'}
 
 ## 🔒 Security & Privacy Notice
 
-This architectural map was produced with strict privacy rules:
-- **Zero Network Transmission:** Executed locally without telemetry or outbound communication.
+This architectural map was produced with strict privacy guarantees:
+- **Zero Network Transmission:** Executed locally without telemetry, tracking, or outbound communication.
 - **Safe Exclusion Filter:** Ignored \`node_modules\`, \`vendor\`, \`.env*\`, key files, credentials, and cache folders.
-- **Metadata Only:** Scanned file names and relative paths only; no secrets or private business contents were extracted.
+- **Manifest & Structure Only:** Safely reads standard manifest dependencies (\`package.json\` / \`composer.json\`) to determine framework types, and relative file paths to categorize components. Never reads private configurations or file contents.
 
 *Generated with ❤️ by LaraTS CLI.*
 `;
 }
-
