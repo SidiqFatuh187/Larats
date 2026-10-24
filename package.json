@@ -13,8 +13,16 @@
     "mermaid",
     "cli"
   ],
-  "author": "",
+  "author": "Sidiq Fatuh <kmzbengbeng14@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SidiqFatuh187/Larats.git"
+  },
+  "homepage": "https://github.com/SidiqFatuh187/Larats#readme",
+  "bugs": {
+    "url": "https://github.com/SidiqFatuh187/Larats/issues"
+  },
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",

@@ -137,8 +137,8 @@ larats scaffold Order --dry-run
 
 ```bash
 # Clone repository
-git clone https://github.com/<your-username>/larats.git
-cd larats
+git clone https://github.com/SidiqFatuh187/Larats.git
+cd Larats
 
 # Install dependencies
 npm install
