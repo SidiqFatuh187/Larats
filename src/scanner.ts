@@ -365,3 +365,4 @@ export async function scanProject(projectInfo: ProjectInfo): Promise<ScanResult>
     scanDurationMs,
   };
 }
+

@@ -84,3 +84,4 @@ test('generateArchitectureMarkdown generates complete markdown with security not
   assert.match(md, /Safe Exclusion Filter/);
   assert.match(md, /Metadata Only/);
 });
+

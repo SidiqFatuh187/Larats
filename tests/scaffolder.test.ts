@@ -206,3 +206,4 @@ test('ANTI-OVERWRITE PROTECTION: existing files are safely preserved and skipped
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 });
+

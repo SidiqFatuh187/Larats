@@ -170,3 +170,4 @@ test('buildCleanDirectoryTree generates formatted tree structure', () => {
   assert.match(tree, /package\.json/);
   assert.match(tree, /controllers\//);
 });
+

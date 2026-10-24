@@ -224,3 +224,4 @@ export interface Update${names.pascal}Dto {
 }
 `;
 }
+

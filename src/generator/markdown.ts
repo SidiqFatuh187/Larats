@@ -256,3 +256,4 @@ This architectural map was produced with strict privacy rules:
 *Generated with ❤️ by ArchMind CLI.*
 `;
 }
+
