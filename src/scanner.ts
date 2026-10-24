@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs';
+import os from 'node:os';
 import fg from 'fast-glob';
 import type { ProjectInfo } from './detector.js';
 
@@ -13,32 +14,42 @@ export const SAFE_IGNORE_LIST = [
   '**/.git/**',
   '**/.svn/**',
   '**/.hg/**',
-  // Storage, cache & build outputs
+  // Storage, cache & build outputs (scoped to root to preserve src/build/)
   '**/storage/**',
   '**/dist/**',
-  '**/build/**',
-  '**/out/**',
+  'build/**',
+  'out/**',
   '**/.next/**',
   '**/.nuxt/**',
   '**/.turbo/**',
   '**/.cache/**',
   '**/coverage/**',
   '**/.temp/**',
-  '**/tmp/**',
+  'tmp/**',
   // IDEs & OS files
   '**/.idea/**',
   '**/.vscode/**',
   '**/.DS_Store',
   '**/Thumbs.db',
-  // Secrets & environment configurations
+  // Secrets, private keys & cloud credentials
   '**/.env*',
   '**/*.pem',
   '**/*.key',
   '**/*.pfx',
+  '**/*.p12',
+  '**/*.jks',
+  '**/*.keystore',
   '**/*.cert',
   '**/*.crt',
   '**/*.secret',
-  '**/*.id_rsa',
+  '**/secrets/**',
+  '**/.aws/**',
+  '**/.ssh/**',
+  '**/credentials*.json',
+  '**/*service-account*.json',
+  '**/id_rsa*',
+  '**/id_ed25519*',
+  '**/id_ecdsa*',
   '**/*.pub',
   // Logs & Lock files
   '**/*.log',
@@ -169,15 +180,29 @@ export async function scanProject(projectInfo: ProjectInfo): Promise<ScanResult>
   const startTime = Date.now();
   const root = projectInfo.rootPath;
 
+  // Avoid scanning system root drive or home directory directly
+  const resolvedRoot = path.resolve(root);
+  const parsedRoot = path.parse(resolvedRoot);
+  if (parsedRoot.root === resolvedRoot || (typeof os.homedir === 'function' && resolvedRoot === os.homedir())) {
+    throw new Error(`Refusing to scan system drive or home directory root directly: "${resolvedRoot}".`);
+  }
+
   // Scan all relevant files in repo while respecting SAFE_IGNORE_LIST
   const allFiles = await fg('**/*', {
     cwd: root,
     ignore: SAFE_IGNORE_LIST,
     dot: false,
     onlyFiles: true,
+    followSymbolicLinks: false,
+    suppressErrors: true,
   });
 
-  const normalizedFiles = allFiles.map((f) => f.replace(/\\/g, '/'));
+  const MAX_FILES_CAP = 10000;
+  let normalizedFiles = allFiles.map((f) => f.replace(/\\/g, '/'));
+  if (normalizedFiles.length > MAX_FILES_CAP) {
+    console.warn(`[WARN] Large codebase detected (${normalizedFiles.length} files). Capping scan analysis to first ${MAX_FILES_CAP} files.`);
+    normalizedFiles = normalizedFiles.slice(0, MAX_FILES_CAP);
+  }
   const components: Record<string, ComponentGroup> = {};
   const modulesSet = new Set<string>();
 

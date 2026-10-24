@@ -35,7 +35,11 @@ export class ${names.pascal}Controller {
         return;
       }
       res.status(200).json({ status: 'success', data: item });
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.name === 'NotFoundError') {
+        res.status(404).json({ status: 'fail', message: error.message });
+        return;
+      }
       next(error);
     }
   };
@@ -62,7 +66,11 @@ export class ${names.pascal}Controller {
       const payload: Update${names.pascal}Dto = req.body;
       const updated = await this.${names.camel}Service.update(id, payload);
       res.status(200).json({ status: 'success', data: updated });
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.name === 'NotFoundError') {
+        res.status(404).json({ status: 'fail', message: error.message });
+        return;
+      }
       next(error);
     }
   };
@@ -73,9 +81,17 @@ export class ${names.pascal}Controller {
   delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
-      await this.${names.camel}Service.delete(id);
+      const deleted = await this.${names.camel}Service.delete(id);
+      if (!deleted) {
+        res.status(404).json({ status: 'fail', message: '${names.pascal} not found' });
+        return;
+      }
       res.status(200).json({ status: 'success', message: '${names.pascal} deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.name === 'NotFoundError') {
+        res.status(404).json({ status: 'fail', message: error.message });
+        return;
+      }
       next(error);
     }
   };
@@ -119,7 +135,8 @@ export class ${names.pascal}Service {
 export function tsRepositoryTemplate(names: NamingVariations, isModular: boolean = true): string {
   const dtoImport = isModular ? `./${names.kebab}.dto.js` : `../dtos/${names.kebab}.dto.js`;
 
-  return `import type { ${names.pascal}Entity, Create${names.pascal}Dto, Update${names.pascal}Dto } from '${dtoImport}';
+  return `import { randomUUID } from 'node:crypto';
+import { NotFoundError, type ${names.pascal}Entity, type Create${names.pascal}Dto, type Update${names.pascal}Dto } from '${dtoImport}';
 
 export interface I${names.pascal}Repository {
   findAll(query?: Record<string, any>): Promise<${names.pascal}Entity[]>;
@@ -142,7 +159,7 @@ export class ${names.pascal}Repository implements I${names.pascal}Repository {
   }
 
   async create(data: Create${names.pascal}Dto): Promise<${names.pascal}Entity> {
-    const id = (Math.random() * 100000).toFixed(0);
+    const id = randomUUID();
     const newRecord: ${names.pascal}Entity = {
       id,
       ...data,
@@ -157,7 +174,7 @@ export class ${names.pascal}Repository implements I${names.pascal}Repository {
   async update(id: string, data: Update${names.pascal}Dto): Promise<${names.pascal}Entity> {
     const existing = await this.findById(id);
     if (!existing) {
-      throw new Error(\`${names.pascal} with id \${id} not found\`);
+      throw new NotFoundError(\`${names.pascal} with id \${id} not found\`);
     }
     const updated: ${names.pascal}Entity = {
       ...existing,
@@ -199,7 +216,14 @@ export default router;
 }
 
 export function tsDtoTemplate(names: NamingVariations): string {
-  return `export interface ${names.pascal}Entity {
+  return `export class NotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotFoundError';
+  }
+}
+
+export interface ${names.pascal}Entity {
   id: string;
   name: string;
   status: 'draft' | 'active' | 'archived';

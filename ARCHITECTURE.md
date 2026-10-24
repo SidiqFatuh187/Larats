@@ -12,7 +12,7 @@
 | **Project Name** | `larats` |
 | **Project Type** | **TYPESCRIPT** |
 | **Detected Stack** | `TypeScript (TypeScript)` |
-| **Scanned Files** | `20` files indexed (safe ignore filter applied) |
+| **Scanned Files** | `23` files indexed (safe ignore filter applied) |
 
 ---
 
@@ -20,14 +20,14 @@
 
 | Component Layer | Count | Description | Sample Files |
 | :--- | :---: | :--- | :--- |
-| **Controllers** | `0` | HTTP request handlers and response dispatchers | -  |
-| **Services** | `0` | Core domain logic and application workflows | -  |
-| **Repositories** | `0` | Data access abstraction and database queries | -  |
-| **Routes** | `0` | API endpoint mappings and router handlers | -  |
-| **DTOs & Schemas** | `0` | Data transfer objects and request validation schemas | -  |
-| **Models & Entities** | `0` | Database schema definitions and entity declarations | -  |
-| **Source Files** | `7` | Main application source code | `src/detector.ts`, `src/index.ts`, `src/scanner.ts`  *(+4 more)* |
-| **Test Files** | `7` | Automated test suites and specifications | `tests/detector.test.ts`, `tests/markdown.test.ts`, `tests/p0_features.test.ts`  *(+4 more)* |
+| **Controllers** | `0` | HTTP request handlers and response dispatchers | - |
+| **Services** | `0` | Core domain logic and application workflows | - |
+| **Repositories** | `0` | Data access abstraction and database queries | - |
+| **Routes** | `0` | API endpoint mappings and router handlers | - |
+| **DTOs & Schemas** | `0` | Data transfer objects and request validation schemas | - |
+| **Models & Entities** | `0` | Database schema definitions and entity declarations | - |
+| **Source Files** | `8` | Main application source code | `src/detector.ts`, `src/env.d.ts`, `src/index.ts` *(+5 more)* |
+| **Test Files** | `9` | Automated test suites and specifications | `tests/detector.test.ts`, `tests/markdown.test.ts`, `tests/p0_features.test.ts` *(+6 more)* |
 
 ---
 
@@ -67,6 +67,7 @@ Clean, high-level directory tree showing key folders (ignoring build artifacts, 
 │   │   ├── laravel.ts
 │   │   └── typescript.ts
 │   ├── detector.ts
+│   ├── env.d.ts
 │   ├── index.ts
 │   └── scanner.ts
 ├── tests/
@@ -74,9 +75,11 @@ Clean, high-level directory tree showing key folders (ignoring build artifacts, 
 │   ├── markdown.test.ts
 │   ├── p0_features.test.ts
 │   ├── p0_scanner.test.ts
+│   ├── p1.test.ts
+│   ├── p1_cli.test.ts
 │   ├── scaffolder.test.ts
 │   ├── scanner.test.ts
-│   └── templates.test.ts
+│   └── ... (1 more files/folders)
 ├── ARCHITECTURE.md
 ├── LICENSE
 ├── README.md
@@ -91,7 +94,7 @@ Clean, high-level directory tree showing key folders (ignoring build artifacts, 
 
 This architectural map was produced with strict privacy guarantees:
 - **Zero Network Transmission:** Executed locally without telemetry, tracking, or outbound communication.
-- **Safe Exclusion Filter:** Ignored `node_modules`, `vendor`, `.env*`, key files, credentials, and cache folders.
+- **Safe Exclusion Filter:** Automatically ignores sensitive files and secret patterns (`**/node_modules/**`, `**/vendor/**`, `**/.pnpm/**`, `**/.yarn/**`, `**/.git/**`, `**/.svn/**`, `**/.hg/**`, `**/storage/**`, etc.) including `node_modules`, `vendor`, `.env*`, private keys, secrets, credentials, cloud configs, and cache folders.
 - **Manifest & Structure Only:** Safely reads standard manifest dependencies (`package.json` / `composer.json`) to determine framework types, and relative file paths to categorize components. Never reads private configurations or file contents.
 
 *Generated with ❤️ by LaraTS CLI.*

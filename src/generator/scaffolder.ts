@@ -40,6 +40,46 @@ export interface ScaffoldResult {
   createdCount: number;
   skippedCount: number;
   errorCount: number;
+  dryRun?: boolean;
+}
+
+const RESERVED_NAMES = new Set([
+  'model',
+  'controller',
+  'service',
+  'action',
+  'request',
+  'migration',
+  'repository',
+  'route',
+  'dto',
+  'object',
+  'class',
+  'interface',
+  'module',
+  'app',
+  'base',
+]);
+
+/**
+ * Validate a user-provided module or feature name.
+ * Returns an error string if invalid, or null if valid.
+ */
+export function validateModuleName(name: string): string | null {
+  if (!name || !name.trim()) {
+    return 'Module name cannot be empty.';
+  }
+  const trimmed = name.trim();
+  if (!/^[a-zA-Z]/.test(trimmed)) {
+    return 'Module name must start with an alphabetical letter.';
+  }
+  if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(trimmed)) {
+    return 'Module name may only contain alphanumeric characters, hyphens, and underscores.';
+  }
+  if (RESERVED_NAMES.has(trimmed.toLowerCase())) {
+    return `"${trimmed}" is a reserved framework name and cannot be used as a module name.`;
+  }
+  return null;
 }
 
 /**
@@ -65,7 +105,12 @@ export async function scaffoldModule(
 ): Promise<ScaffoldResult> {
   const root = projectInfo.rootPath;
   const names = getNaming(options.moduleName);
-  const filesToGenerate: { relativePath: string; content: string }[] = [];
+  const filesToGenerate: {
+    relativePath: string;
+    content: string;
+    isBarrel?: boolean;
+    barrelExports?: string[];
+  }[] = [];
   const results: ScaffoldFileResult[] = [];
   let createdCount = 0;
   let skippedCount = 0;
@@ -117,7 +162,7 @@ export async function scaffoldModule(
       if (selected.has('model')) {
         filesToGenerate.push({
           relativePath: `${baseDir}/Models/${names.pascal}.php`,
-          content: laravelModelTemplate(names, `${baseNamespace}\\Models`),
+          content: laravelModelTemplate(names, `${baseNamespace}\\Models`, projectInfo.laravel?.version),
         });
       }
       if (selected.has('controller')) {
@@ -163,7 +208,7 @@ export async function scaffoldModule(
       if (selected.has('model')) {
         filesToGenerate.push({
           relativePath: `app/Models/${names.pascal}.php`,
-          content: laravelModelTemplate(names, 'App\\Models'),
+          content: laravelModelTemplate(names, 'App\\Models', projectInfo.laravel?.version),
         });
       }
       if (selected.has('controller')) {
@@ -242,10 +287,14 @@ export async function scaffoldModule(
         if (selected.has('route')) exports.push(`export * from './${names.kebab}.routes.js';`);
         if (selected.has('dto')) exports.push(`export * from './${names.kebab}.dto.js';`);
 
-        filesToGenerate.push({
-          relativePath: `${moduleFolder}/index.ts`,
-          content: `${exports.join('\n')}\n`,
-        });
+        if (exports.length > 0) {
+          filesToGenerate.push({
+            relativePath: `${moduleFolder}/index.ts`,
+            content: `${exports.join('\n')}\n`,
+            isBarrel: true,
+            barrelExports: exports,
+          });
+        }
       }
     } else {
       // Layered structure
@@ -287,15 +336,16 @@ export async function scaffoldModule(
   for (const item of filesToGenerate) {
     const fullPath = path.resolve(root, item.relativePath);
 
-    // 1. Anti-Overwrite Protection check
-    if (fs.existsSync(fullPath) && !options.forceOverwrite) {
+    // Defense in depth: path traversal check
+    const rel = path.relative(root, fullPath);
+    if (rel.startsWith('..') || path.isAbsolute(rel)) {
       results.push({
         filePath: fullPath,
         relativeFilePath: item.relativePath,
-        status: 'skipped',
-        reason: 'File already exists (overwrite protected)',
+        status: 'error',
+        reason: 'Path traversal attempt detected outside project root',
       });
-      skippedCount++;
+      errorCount++;
       continue;
     }
 
@@ -310,6 +360,48 @@ export async function scaffoldModule(
       continue;
     }
 
+    // Handle TS barrel index.ts appending if file already exists
+    if (item.isBarrel && item.barrelExports && fs.existsSync(fullPath)) {
+      try {
+        const existingContent = fs.readFileSync(fullPath, 'utf-8');
+        const missingExports = item.barrelExports.filter(
+          (line) => !existingContent.includes(line)
+        );
+
+        if (missingExports.length > 0) {
+          const newContent = existingContent.endsWith('\n')
+            ? existingContent + missingExports.join('\n') + '\n'
+            : existingContent + '\n' + missingExports.join('\n') + '\n';
+          fs.writeFileSync(fullPath, newContent, 'utf-8');
+          results.push({
+            filePath: fullPath,
+            relativeFilePath: item.relativePath,
+            status: 'created',
+            reason: 'Appended exports to existing barrel index',
+          });
+          createdCount++;
+        } else {
+          results.push({
+            filePath: fullPath,
+            relativeFilePath: item.relativePath,
+            status: 'skipped',
+            reason: 'File already exists and contains all module exports',
+          });
+          skippedCount++;
+        }
+        continue;
+      } catch (err: any) {
+        results.push({
+          filePath: fullPath,
+          relativeFilePath: item.relativePath,
+          status: 'error',
+          reason: err.message || String(err),
+        });
+        errorCount++;
+        continue;
+      }
+    }
+
     try {
       // Ensure directory exists
       const parentDir = path.dirname(fullPath);
@@ -317,7 +409,10 @@ export async function scaffoldModule(
         fs.mkdirSync(parentDir, { recursive: true });
       }
 
-      fs.writeFileSync(fullPath, item.content, 'utf-8');
+      fs.writeFileSync(fullPath, item.content, {
+        flag: options.forceOverwrite ? 'w' : 'wx',
+        encoding: 'utf-8',
+      });
       results.push({
         filePath: fullPath,
         relativeFilePath: item.relativePath,
@@ -325,13 +420,23 @@ export async function scaffoldModule(
       });
       createdCount++;
     } catch (err: any) {
-      results.push({
-        filePath: fullPath,
-        relativeFilePath: item.relativePath,
-        status: 'error',
-        reason: err.message || String(err),
-      });
-      errorCount++;
+      if (err.code === 'EEXIST') {
+        results.push({
+          filePath: fullPath,
+          relativeFilePath: item.relativePath,
+          status: 'skipped',
+          reason: 'File already exists (overwrite protected)',
+        });
+        skippedCount++;
+      } else {
+        results.push({
+          filePath: fullPath,
+          relativeFilePath: item.relativePath,
+          status: 'error',
+          reason: err.message || String(err),
+        });
+        errorCount++;
+      }
     }
   }
 
@@ -342,6 +447,7 @@ export async function scaffoldModule(
     createdCount,
     skippedCount,
     errorCount,
+    dryRun: Boolean(options.dryRun),
   };
 }
 

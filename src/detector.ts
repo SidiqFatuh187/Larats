@@ -38,7 +38,7 @@ export interface ProjectInfo {
 function readJsonSafe<T = any>(filePath: string): T | null {
   try {
     if (!fs.existsSync(filePath)) return null;
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, 'utf-8').replace(/^\uFEFF/, '');
     return JSON.parse(content) as T;
   } catch {
     return null;
@@ -80,7 +80,8 @@ export async function detectProjectType(targetDir: string = process.cwd()): Prom
     const hasSanctum = 'laravel/sanctum' in allDeps;
 
     const rawVersion = allDeps['laravel/framework'] || '';
-    const cleanVersion = rawVersion.replace(/[\^~><=]/g, '').trim();
+    const versionMatch = rawVersion.match(/\d+(?:\.\d+)*/);
+    const cleanVersion = versionMatch ? versionMatch[0] : '';
 
     // Check for modular architecture
     const appModulesDir = path.join(resolvedDir, 'app', 'Modules');

@@ -1,4 +1,63 @@
 import type { ScanResult } from '../scanner.js';
+import { SAFE_IGNORE_LIST } from '../scanner.js';
+
+/**
+ * Escape pipe and newline characters in Markdown table cells.
+ */
+export function mdCell(str: string): string {
+  if (!str) return '-';
+  const cleaned = str.replace(/\|/g, '\\|').replace(/[\r\n]+/g, ' ').trim();
+  return cleaned || '-';
+}
+
+/**
+ * Format markdown code fence handling nested backticks safely.
+ */
+export function fence(body: string, lang: string = ''): string {
+  const matches = body.match(/`+/g);
+  let maxBackticks = 2;
+  if (matches) {
+    for (const match of matches) {
+      if (match.length > maxBackticks) maxBackticks = match.length;
+    }
+  }
+  const f = '`'.repeat(maxBackticks + 1);
+  return `${f}${lang ? lang : ''}\n${body}\n${f}`;
+}
+
+/**
+ * Escape text for safe rendering in Mermaid diagram node labels and sanitize characters.
+ */
+export function mermaidLabel(str: string, maxLen: number = 40): string {
+  if (!str) return '';
+  let cleaned = str
+    .replace(/"/g, "'")
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/`/g, "'")
+    .replace(/[\r\n]+/g, ' ')
+    .trim();
+  if (cleaned.length > maxLen) {
+    cleaned = cleaned.slice(0, maxLen - 3) + '...';
+  }
+  return cleaned;
+}
+
+/**
+ * Render feature modules subgraph for Mermaid diagrams.
+ */
+function renderModulesSubgraph(modules: string[]): string {
+  if (modules.length === 0) return '';
+  let output = `\n    subgraph ModulesLayer ["📦 Detected Modules (${modules.length})"]\n`;
+  modules.slice(0, 6).forEach((mod, idx) => {
+    output += `        Mod_${idx}["${mermaidLabel(mod)} Module"]:::service\n`;
+  });
+  if (modules.length > 6) {
+    output += `        Mod_More["...and ${modules.length - 6} more modules"]:::service\n`;
+  }
+  output += `    end\n`;
+  return output;
+}
 
 /**
  * Generate a dynamic Mermaid.js diagram representing only the components and layers
@@ -26,7 +85,7 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
 
     subgraph EntryLayer ["1. Client & Entrypoints"]
         Client["Client / Browser / API Consumer"]:::client
-        Routes["HTTP Routes<br/>(routes/web.php, routes/api.php)"]:::routing
+        Routes["HTTP Routes"]:::routing
     end
 `;
 
@@ -41,10 +100,10 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
 
     diagram += `
     subgraph HttpLayer ["3. Controllers & Presentation"]
-        Controllers["HTTP Controllers<br/>(app/Http/Controllers)"]:::controller
+        Controllers["HTTP Controllers"]:::controller
 `;
     if (hasFilament) {
-      diagram += `        Filament["Filament Admin Resources<br/>(app/Filament/Resources)"]:::controller\n`;
+      diagram += `        Filament["Filament Admin Resources"]:::controller\n`;
     }
     diagram += `    end\n`;
 
@@ -53,10 +112,10 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
     subgraph DomainLayer ["4. Domain & Business Logic"]
 `;
       if (hasServices) {
-        diagram += `        Services["Service Classes<br/>(app/Services)"]:::service\n`;
+        diagram += `        Services["Service Classes"]:::service\n`;
       }
       if (hasActions) {
-        diagram += `        Actions["Action Classes<br/>(app/Actions)"]:::service\n`;
+        diagram += `        Actions["Action Classes"]:::service\n`;
       }
       diagram += `    end\n`;
     }
@@ -65,11 +124,11 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
     subgraph DataLayer ["5. Data Persistence & Storage"]
 `;
     if (hasModels) {
-      diagram += `        Models["Eloquent Models<br/>(app/Models)"]:::data\n`;
+      diagram += `        Models["Eloquent Models"]:::data\n`;
     }
     diagram += `        Database[("Database<br/>(MySQL / Postgres / SQLite)")]:::db\n`;
     if (hasMigrations) {
-      diagram += `        Migrations["Database Migrations<br/>(database/migrations)"]:::data\n`;
+      diagram += `        Migrations["Database Migrations"]:::data\n`;
     }
     diagram += `    end\n\n`;
 
@@ -132,14 +191,7 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
     }
 
     if (modules.length > 0) {
-      diagram += `\n    subgraph ModulesLayer ["📦 Detected Modules (${modules.length})"]\n`;
-      modules.slice(0, 6).forEach((mod, idx) => {
-        diagram += `        Mod_${idx}["${mod} Module"]:::service\n`;
-      });
-      if (modules.length > 6) {
-        diagram += `        Mod_More["...and ${modules.length - 6} more modules"]:::service\n`;
-      }
-      diagram += `    end\n`;
+      diagram += renderModulesSubgraph(modules);
     }
 
     return diagram;
@@ -255,14 +307,7 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
       }
 
       if (modules.length > 0) {
-        diagram += `\n    subgraph ModulesLayer ["📦 Detected Feature Modules (${modules.length})"]\n`;
-        modules.slice(0, 6).forEach((mod, idx) => {
-          diagram += `        Mod_${idx}["${mod} Module"]:::service\n`;
-        });
-        if (modules.length > 6) {
-          diagram += `        Mod_More["...and ${modules.length - 6} more modules"]:::service\n`;
-        }
-        diagram += `    end\n`;
+        diagram += renderModulesSubgraph(modules);
       }
 
       return diagram;
@@ -320,7 +365,7 @@ export function generateArchitectureMarkdown(scanResult: ScanResult): string {
     .map(([, comp]) => {
       const sampleFiles = comp.files.slice(0, 3).map((f) => `\`${f}\``).join(', ');
       const moreSuffix = comp.files.length > 3 ? ` *(+${comp.files.length - 3} more)*` : '';
-      return `| **${comp.name}** | \`${comp.count}\` | ${comp.description} | ${sampleFiles || '-'} ${moreSuffix} |`;
+      return `| **${mdCell(comp.name)}** | \`${comp.count}\` | ${mdCell(comp.description)} | ${sampleFiles ? mdCell(sampleFiles + moreSuffix) : '-'} |`;
     })
     .join('\n');
 
@@ -335,6 +380,17 @@ This project organizes features into modular domains:
 ${modules.map((m) => `- **\`${m}\`**`).join('\n')}
 `;
   }
+
+  // Security notice generated from SAFE_IGNORE_LIST
+  const sampleIgnores = SAFE_IGNORE_LIST.slice(0, 8).map((p) => `\`${p}\``).join(', ');
+  const securityNotice = `## 🔒 Security & Privacy Notice
+
+This architectural map was produced with strict privacy guarantees:
+- **Zero Network Transmission:** Executed locally without telemetry, tracking, or outbound communication.
+- **Safe Exclusion Filter:** Automatically ignores sensitive files and secret patterns (${sampleIgnores}, etc.) including \`node_modules\`, \`vendor\`, \`.env*\`, private keys, secrets, credentials, cloud configs, and cache folders.
+- **Manifest & Structure Only:** Safely reads standard manifest dependencies (\`package.json\` / \`composer.json\`) to determine framework types, and relative file paths to categorize components. Never reads private configurations or file contents.
+
+*Generated with ❤️ by LaraTS CLI.*`;
 
   return `# 🏛️ Architecture Overview: ${projectInfo.name}
 
@@ -366,9 +422,7 @@ ${modulesSection}
 
 Visual representation of the project layers and request lifecycle rendered with [Mermaid.js](https://mermaid.js.org/):
 
-\`\`\`mermaid
-${mermaid}
-\`\`\`
+${fence(mermaid, 'mermaid')}
 
 ---
 
@@ -376,19 +430,10 @@ ${mermaid}
 
 Clean, high-level directory tree showing key folders (ignoring build artifacts, vendor files, and sensitive keys):
 
-\`\`\`text
-${directoryTree || '(Empty directory structure)'}
-\`\`\`
+${fence(directoryTree || '(Empty directory structure)', 'text')}
 
 ---
 
-## 🔒 Security & Privacy Notice
-
-This architectural map was produced with strict privacy guarantees:
-- **Zero Network Transmission:** Executed locally without telemetry, tracking, or outbound communication.
-- **Safe Exclusion Filter:** Ignored \`node_modules\`, \`vendor\`, \`.env*\`, key files, credentials, and cache folders.
-- **Manifest & Structure Only:** Safely reads standard manifest dependencies (\`package.json\` / \`composer.json\`) to determine framework types, and relative file paths to categorize components. Never reads private configurations or file contents.
-
-*Generated with ❤️ by LaraTS CLI.*
+${securityNotice}
 `;
 }

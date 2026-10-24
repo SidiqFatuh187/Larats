@@ -90,9 +90,9 @@ LaraTS will **NEVER** silently overwrite your existing code. If a target file al
 LaraTS was engineered from the ground up for strict security:
 - **100% Offline & Local**: Zero network calls, telemetry, or third-party tracking.
 - **Strict Ignore List (`SAFE_IGNORE_LIST`)**:
-  - Never reads or includes `**/node_modules/**`, `**/vendor/**`, `**/.git/**`, `**/storage/**`, `**/dist/**`, `**/build/**`.
-  - Never exposes environment files: `**/.env*`, `**/*.pem`, `**/*.key`, `**/*.pfx`, `**/*.cert`.
-  - Never indexes lock/log files: `**/*.log`, `**/*.lock`, `package-lock.json`, `pnpm-lock.yaml`, `composer.lock`.
+  - Never reads or includes `**/node_modules/**`, `**/vendor/**`, `**/.git/**`, `**/storage/**`, `**/dist/**`, `build/**`, `out/**`, `tmp/**`.
+  - Never touches keys or cloud secrets: `**/.env*`, `**/*.pem`, `**/*.key`, `**/*.p12`, `**/*.jks`, `**/*.keystore`, `**/.aws/**`, `**/.ssh/**`, `**/secrets/**`, `**/credentials*.json`, `**/*service-account*.json`, `**/id_rsa*`, `**/id_ed25519*`, `**/id_ecdsa*`.
+  - Never indexes lock/log files: `**/*.log`, `**/*.lock`, `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `composer.lock`.
 - **Manifest & Structure Only**: Scanner safely inspects package manifests (`package.json`, `composer.json`) solely to identify framework and ORM types, and relative file paths to categorize layers. It never reads private configuration values, `.env*` secrets, or internal application logic.
 
 ---

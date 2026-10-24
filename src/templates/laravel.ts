@@ -7,6 +7,23 @@ export interface NamingVariations {
   pluralPascal: string;// e.g. PaymentOrders
 }
 
+function pluralize(word: string): string {
+  const lower = word.toLowerCase();
+  // If already ends in s and not ss (e.g. payments, orders, users)
+  if (lower.endsWith('s') && !lower.endsWith('ss')) {
+    return word;
+  }
+  // consonant + y -> ies (e.g., category -> categories, company -> companies)
+  if (/[bcdfghjklmnpqrstvwxyz]y$/i.test(word)) {
+    return word.slice(0, -1) + (word.endsWith('Y') ? 'IES' : 'ies');
+  }
+  // s, x, z, ch, sh -> es (box -> boxes, church -> churches, dish -> dishes, pass -> passes)
+  if (/(?:s|x|z|ch|sh)$/i.test(word)) {
+    return word + (word === word.toUpperCase() ? 'ES' : 'es');
+  }
+  return word + (word === word.toUpperCase() ? 'S' : 's');
+}
+
 export function getNaming(input: string): NamingVariations {
   // Clean string and split on camelCase/PascalCase boundaries and separators
   const words = input
@@ -17,7 +34,7 @@ export function getNaming(input: string): NamingVariations {
     .filter(Boolean);
 
   if (words.length === 0) {
-    words.push('SampleModule');
+    words.push('sample', 'module');
   }
 
   const pascal = words
@@ -30,15 +47,52 @@ export function getNaming(input: string): NamingVariations {
 
   const kebab = words.map((w) => w.toLowerCase()).join('-');
 
-  // Basic pluralization
-  const pluralSuffix = snake.endsWith('s') || snake.endsWith('ch') || snake.endsWith('sh') ? 'es' : 's';
-  const pluralSnake = snake + pluralSuffix;
-  const pluralPascal = pascal + pluralSuffix;
+  // Pluralization
+  const pluralWords = [...words];
+  const lastIdx = pluralWords.length - 1;
+  pluralWords[lastIdx] = pluralize(pluralWords[lastIdx]);
+
+  const pluralSnake = pluralWords.map((w) => w.toLowerCase()).join('_');
+  const pluralPascal = pluralWords
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join('');
 
   return { pascal, camel, kebab, snake, pluralSnake, pluralPascal };
 }
 
-export function laravelModelTemplate(names: NamingVariations, namespace: string = 'App\\Models'): string {
+export function laravelModelTemplate(
+  names: NamingVariations,
+  namespace: string = 'App\\Models',
+  laravelVersion?: string
+): string {
+  const major = laravelVersion ? parseInt(laravelVersion.split('.')[0], 10) : 11;
+  const isLaravel10OrOlder = major > 0 && major < 11;
+
+  const castsBlock = isLaravel10OrOlder
+    ? `    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'metadata' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];`
+    : `    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'array',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }`;
+
   return `<?php
 
 namespace ${namespace};
@@ -68,19 +122,7 @@ class ${names.pascal} extends Model
         'metadata',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'metadata' => 'array',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
+${castsBlock}
 }
 `;
 }
