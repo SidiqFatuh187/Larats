@@ -1,7 +1,7 @@
-# ArchMind 🧠
+# LaraTS ⚡
 
-> **Smart Architecture Scanner (Visualizer) & Contextual Module Scaffolder CLI**  
-> Designed for **Laravel** & **TypeScript** (Node.js / Express / React / Monorepo) projects.
+> **Smart Architecture Visualizer & Contextual Module Scaffolder CLI**  
+> Tailor-made for **Laravel** & **TypeScript** (Node.js / Express / React / Monorepo) projects.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org)
@@ -10,9 +10,9 @@
 
 ---
 
-## 💡 What is ArchMind?
+## 💡 What is LaraTS?
 
-When codebases grow large, developers often struggle to understand the architecture or keep module structures consistent across teams. **ArchMind** solves this with two core capabilities:
+When codebases grow large, developers often struggle to understand the architecture or keep module structures consistent across teams. **LaraTS** solves this with two core capabilities:
 
 1. 🔍 **Architecture Scanner & Visualizer (`scan`)**: Instantly scans your repository, categorizes layers (Models, Controllers, Services, Actions, Filament Resources, Routes, etc.), and generates a clean `ARCHITECTURE.md` with an interactive **Mermaid.js flowchart** and directory tree.
 2. 🏗️ **Contextual Module Scaffolder (`scaffold` / `make`)**: Quickly generates cohesive feature modules with clean, production-ready boilerplate code tailored to your exact stack (Laravel or TypeScript).
@@ -26,20 +26,20 @@ Run instantly without installation via `npx`:
 
 ```bash
 # Interactive menu mode
-npx archmind
+npx larats
 
 # Or scan architecture directly
-npx archmind scan
+npx larats scan
 
 # Or scaffold a new module directly
-npx archmind scaffold Payment
+npx larats scaffold Payment
 ```
 
 Or install globally:
 
 ```bash
-npm install -g archmind
-archmind
+npm install -g larats
+larats
 ```
 
 ---
@@ -47,11 +47,11 @@ archmind
 ## ✨ Key Features
 
 ### 1. 🔍 Auto-Detection & Safe Scanner
-ArchMind inspects configuration files to detect your stack:
+LaraTS inspects configuration files to detect your stack:
 - **Laravel**: Detects Laravel version, Filament Admin panel, Livewire, Inertia.js, Sanctum, and Modular architecture.
 - **TypeScript**: Detects Express, NestJS, Fastify, Next.js, React, Prisma ORM, TypeORM, Drizzle, Monorepos, and Modular setups.
 
-When you run `archmind scan`:
+When you run `larats scan`:
 - Indexes architectural components (Counts and samples).
 - Builds a clean, high-level directory tree.
 - Generates an interactive **Mermaid.js flowchart (`flowchart TD`)** showing the entire request lifecycle across layers.
@@ -79,13 +79,13 @@ Create new features in seconds with consistent boilerplate:
   - **Structure choices**: Feature Module (`src/modules/<name>/...`) or Layered structure (`src/controllers/`, `src/services/`, etc.).
 
 ### 3. 🛡️ Anti-Overwrite Protection
-ArchMind will **NEVER** silently overwrite your existing code. If a target file already exists, ArchMind skips it and alerts you. You can only overwrite files by explicitly providing `--force`.
+LaraTS will **NEVER** silently overwrite your existing code. If a target file already exists, LaraTS skips it and alerts you. You can only overwrite files by explicitly providing `--force`.
 
 ---
 
 ## 🔒 Strict Security & Safety Guarantees
 
-ArchMind was engineered from the ground up for strict security:
+LaraTS was engineered from the ground up for strict security:
 - **100% Offline & Local**: Zero network calls, telemetry, or third-party tracking.
 - **Strict Ignore List (`SAFE_IGNORE_LIST`)**:
   - Never reads or includes `**/node_modules/**`, `**/vendor/**`, `**/.git/**`, `**/storage/**`, `**/dist/**`, `**/build/**`.
@@ -99,8 +99,8 @@ ArchMind was engineered from the ground up for strict security:
 
 ```text
 USAGE:
-  $ npx archmind [command] [options]
-  $ archmind [command] [options]
+  $ npx larats [command] [options]
+  $ larats [command] [options]
 
 COMMANDS:
   scan                 Scan repository & generate ARCHITECTURE.md
@@ -122,13 +122,13 @@ OPTIONS:
 
 ```bash
 # Scan and save to custom documentation path
-archmind scan --output docs/ARCHITECTURE.md
+larats scan --output docs/ARCHITECTURE.md
 
 # Scaffold a 'Payment' module with modular structure
-archmind scaffold Payment --modular
+larats scaffold Payment --modular
 
 # Dry-run test scaffolding without writing files
-archmind scaffold Order --dry-run
+larats scaffold Order --dry-run
 ```
 
 ---
@@ -137,13 +137,13 @@ archmind scaffold Order --dry-run
 
 ```bash
 # Clone repository
-git clone https://github.com/archmind-cli/archmind.git
-cd archmind
+git clone https://github.com/<your-username>/larats.git
+cd larats
 
 # Install dependencies
 npm install
 
-# Run test suite (Node.js test runner)
+# Run test suite
 npm test
 
 # Build distribution bundle
@@ -158,4 +158,3 @@ node dist/index.js
 ## 📄 License
 
 Licensed under the [MIT License](LICENSE).
-

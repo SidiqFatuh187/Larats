@@ -1,10 +1,12 @@
 {
-  "name": "archmind",
+  "name": "larats",
   "version": "1.0.0",
-  "description": "Smart Architecture Scanner & Contextual Module Scaffolder CLI for Laravel and TypeScript projects",
+  "description": "Smart Architecture Visualizer & Contextual Module Scaffolder CLI for Laravel and TypeScript projects",
   "keywords": [
+    "larats",
     "architecture",
     "scanner",
+    "visualizer",
     "scaffolder",
     "laravel",
     "typescript",
@@ -18,8 +20,7 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "archmind": "./dist/index.js",
-    "archmind-cli": "./dist/index.js"
+    "larats": "./dist/index.js"
   },
   "files": [
     "dist"

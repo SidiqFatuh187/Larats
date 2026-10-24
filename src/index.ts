@@ -11,12 +11,12 @@ const VERSION = '1.0.0';
 
 function showHelp() {
   console.log(`
-${pc.bold(pc.cyan('ArchMind CLI'))} ${pc.gray(`v${VERSION}`)}
-${pc.gray('Smart Architecture Scanner & Contextual Module Scaffolder')}
+${pc.bold(pc.cyan('LaraTS CLI'))} ${pc.gray(`v${VERSION}`)}
+${pc.gray('Smart Architecture Visualizer & Contextual Module Scaffolder')}
 
 ${pc.bold('USAGE:')}
-  ${pc.cyan('$')} npx archmind [command] [options]
-  ${pc.cyan('$')} archmind [command] [options]
+  ${pc.cyan('$')} npx larats [command] [options]
+  ${pc.cyan('$')} larats [command] [options]
 
 ${pc.bold('COMMANDS:')}
   ${pc.green('scan')}                 Scan repository & generate ARCHITECTURE.md
@@ -34,11 +34,11 @@ ${pc.bold('OPTIONS:')}
   ${pc.yellow('-h, --help')}             Display this help message
 
 ${pc.bold('EXAMPLES:')}
-  ${pc.cyan('$')} archmind
-  ${pc.cyan('$')} archmind scan
-  ${pc.cyan('$')} archmind scan --output docs/ARCHITECTURE.md
-  ${pc.cyan('$')} archmind scaffold Payment
-  ${pc.cyan('$')} archmind make Order --modular
+  ${pc.cyan('$')} larats
+  ${pc.cyan('$')} larats scan
+  ${pc.cyan('$')} larats scan --output docs/ARCHITECTURE.md
+  ${pc.cyan('$')} larats scaffold Payment
+  ${pc.cyan('$')} larats make Order --modular
 `);
 }
 
@@ -272,7 +272,7 @@ async function main() {
   }
 
   if (args.includes('--version') || args.includes('-v')) {
-    console.log(`archmind v${VERSION}`);
+    console.log(`larats v${VERSION}`);
     return;
   }
 
@@ -295,7 +295,7 @@ async function main() {
 
   // Non-interactive command routing
   if (command === 'scan') {
-    p.intro(`${pc.bgCyan(pc.black(' ArchMind '))} ${pc.gray(`v${VERSION}`)} - Scanning Architecture`);
+    p.intro(`${pc.bgCyan(pc.black(' LaraTS '))} ${pc.gray(`v${VERSION}`)} - Scanning Architecture`);
     p.log.info(`Detected: ${pc.green(projectInfo.summary)}`);
     await runScan(projectInfo, outputPath);
     return;
@@ -303,7 +303,7 @@ async function main() {
 
   if (command === 'scaffold' || command === 'make') {
     const moduleName = args[1] && !args[1].startsWith('-') ? args[1] : undefined;
-    p.intro(`${pc.bgCyan(pc.black(' ArchMind '))} ${pc.gray(`v${VERSION}`)} - Module Scaffolder`);
+    p.intro(`${pc.bgCyan(pc.black(' LaraTS '))} ${pc.gray(`v${VERSION}`)} - Module Scaffolder`);
     p.log.info(`Target Project: ${pc.green(projectInfo.summary)}`);
     await runScaffold(projectInfo, moduleName, {
       modular: isModularFlag,
@@ -315,14 +315,14 @@ async function main() {
   }
 
   if (command === 'info') {
-    p.intro(`${pc.bgCyan(pc.black(' ArchMind '))} ${pc.gray(`v${VERSION}`)}`);
+    p.intro(`${pc.bgCyan(pc.black(' LaraTS '))} ${pc.gray(`v${VERSION}`)}`);
     showProjectInfo(projectInfo);
     p.outro(pc.cyan('Done.'));
     return;
   }
 
   // Interactive Menu Mode
-  p.intro(`${pc.bgCyan(pc.black(' ArchMind '))} ${pc.bold('Smart Architecture Visualizer & Scaffolder')} ${pc.gray(`v${VERSION}`)}`);
+  p.intro(`${pc.bgCyan(pc.black(' LaraTS '))} ${pc.bold('Smart Architecture Visualizer & Scaffolder')} ${pc.gray(`v${VERSION}`)}`);
 
   p.log.info(`Working Directory: ${pc.gray(process.cwd())}`);
   p.log.info(`Detected Architecture: ${pc.bold(pc.green(projectInfo.summary))}`);
