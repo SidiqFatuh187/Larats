@@ -66,6 +66,10 @@ export async function scaffoldModule(
   const root = projectInfo.rootPath;
   const names = getNaming(options.moduleName);
   const filesToGenerate: { relativePath: string; content: string }[] = [];
+  const results: ScaffoldFileResult[] = [];
+  let createdCount = 0;
+  let skippedCount = 0;
+  let errorCount = 0;
 
   const isModular =
     options.isModular ??
@@ -77,6 +81,34 @@ export async function scaffoldModule(
 
   if (projectInfo.type === 'laravel') {
     const selected = new Set(options.components);
+
+    const addMigrationIfRequested = () => {
+      const migrationsDir = path.join(root, 'database', 'migrations');
+      let existingMigration: string | null = null;
+      if (fs.existsSync(migrationsDir)) {
+        const files = fs.readdirSync(migrationsDir);
+        const match = files.find((f) => f.endsWith(`_create_${names.pluralSnake}_table.php`));
+        if (match) {
+          existingMigration = match;
+        }
+      }
+
+      if (existingMigration && !options.forceOverwrite) {
+        results.push({
+          filePath: path.join(migrationsDir, existingMigration),
+          relativeFilePath: `database/migrations/${existingMigration}`,
+          status: 'skipped',
+          reason: 'Migration for table already exists (overwrite protected)',
+        });
+        skippedCount++;
+      } else {
+        const timestamp = existingMigration ? existingMigration.split('_create_')[0] : getMigrationTimestamp();
+        filesToGenerate.push({
+          relativePath: `database/migrations/${timestamp}_create_${names.pluralSnake}_table.php`,
+          content: laravelMigrationTemplate(names),
+        });
+      }
+    };
 
     if (isModular) {
       const baseDir = `app/Modules/${names.pascal}`;
@@ -124,11 +156,7 @@ export async function scaffoldModule(
         });
       }
       if (selected.has('migration')) {
-        const timestamp = getMigrationTimestamp();
-        filesToGenerate.push({
-          relativePath: `database/migrations/${timestamp}_create_${names.pluralSnake}_table.php`,
-          content: laravelMigrationTemplate(names),
-        });
+        addMigrationIfRequested();
       }
     } else {
       // Standard Laravel Structure
@@ -163,11 +191,7 @@ export async function scaffoldModule(
         });
       }
       if (selected.has('migration')) {
-        const timestamp = getMigrationTimestamp();
-        filesToGenerate.push({
-          relativePath: `database/migrations/${timestamp}_create_${names.pluralSnake}_table.php`,
-          content: laravelMigrationTemplate(names),
-        });
+        addMigrationIfRequested();
       }
     }
   } else {
@@ -259,10 +283,6 @@ export async function scaffoldModule(
   }
 
   // Execute file writing with strict Anti-Overwrite Protection
-  const results: ScaffoldFileResult[] = [];
-  let createdCount = 0;
-  let skippedCount = 0;
-  let errorCount = 0;
 
   for (const item of filesToGenerate) {
     const fullPath = path.resolve(root, item.relativePath);

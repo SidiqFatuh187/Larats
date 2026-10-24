@@ -160,8 +160,10 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
     const hasDtos = (components['DTOs & Schemas']?.count ?? 0) > 0;
     const hasUi = (components['UI Components']?.count ?? 0) > 0;
     const hasModels = (components['Models & Entities']?.count ?? 0) > 0;
+    const hasAnyLayer = hasControllers || hasServices || hasRepositories || hasDtos || hasUi || hasModels;
 
-    let diagram = `flowchart TD
+    if (hasAnyLayer) {
+      let diagram = `flowchart TD
     %% Styling Definitions
     classDef client fill:#E0F2FE,stroke:#0284C7,stroke-width:2px,color:#0369A1;
     classDef routing fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#B45309;
@@ -176,125 +178,146 @@ export function generateMermaidDiagram(scanResult: ScanResult): string {
     end
 `;
 
-    if (hasUi) {
-      diagram += `
+      if (hasUi) {
+        diagram += `
     subgraph UiLayer ["Frontend Presentation"]
         UiComponents["UI Components<br/>(src/components)"]:::controller
     end
 `;
-    }
+      }
 
-    if (hasDtos) {
-      diagram += `
+      if (hasDtos) {
+        diagram += `
     subgraph ValidationLayer ["2. Validation & Schemas"]
         DTOs["DTOs & Schemas<br/>(Input Validation)"]:::routing
     end
 `;
-    }
+      }
 
-    if (hasControllers) {
-      diagram += `
+      if (hasControllers) {
+        diagram += `
     subgraph ControllerLayer ["3. Controllers"]
         Controllers["Controllers<br/>(Request Handling)"]:::controller
     end
 `;
-    }
+      }
 
-    if (hasServices) {
-      diagram += `
+      if (hasServices) {
+        diagram += `
     subgraph ServiceLayer ["4. Application Services"]
         Services["Domain Services<br/>(Business Logic)"]:::service
     end
 `;
-    }
+      }
 
-    diagram += `
+      diagram += `
     subgraph PersistenceLayer ["5. Data Layer & Storage"]
 `;
-    if (hasRepositories) {
-      diagram += `        Repositories["Repositories / Data Access<br/>(${orm || 'Data Layer'})"]:::data\n`;
-    } else if (hasModels) {
-      diagram += `        Entities["Models & Entities<br/>(${orm || 'ORM'})"]:::data\n`;
-    }
-    diagram += `        Database[("Database / Storage")]:::db\n`;
-    diagram += `    end\n\n`;
-
-    // Dynamic Connections
-    diagram += `    Client --> Router\n`;
-    if (hasUi) {
-      diagram += `    Client --> UiComponents\n`;
-      diagram += `    UiComponents --> Router\n`;
-    }
-
-    let previousNode = 'Router';
-    if (hasDtos) {
-      diagram += `    ${previousNode} --> DTOs\n`;
-      previousNode = 'DTOs';
-    }
-
-    if (hasControllers) {
-      diagram += `    ${previousNode} --> Controllers\n`;
-      previousNode = 'Controllers';
-    }
-
-    if (hasServices) {
-      diagram += `    ${previousNode} --> Services\n`;
-      previousNode = 'Services';
-    }
-
-    if (hasRepositories) {
-      diagram += `    ${previousNode} --> Repositories\n`;
-      diagram += `    Repositories --> Database\n`;
-    } else if (hasModels) {
-      diagram += `    ${previousNode} --> Entities\n`;
-      diagram += `    Entities --> Database\n`;
-    } else {
-      diagram += `    ${previousNode} --> Database\n`;
-    }
-
-    if (modules.length > 0) {
-      diagram += `\n    subgraph ModulesLayer ["📦 Detected Feature Modules (${modules.length})"]\n`;
-      modules.slice(0, 6).forEach((mod, idx) => {
-        diagram += `        Mod_${idx}["${mod} Module"]:::service\n`;
-      });
-      if (modules.length > 6) {
-        diagram += `        Mod_More["...and ${modules.length - 6} more modules"]:::service\n`;
+      if (hasRepositories) {
+        diagram += `        Repositories["Repositories / Data Access<br/>(${orm || 'Data Layer'})"]:::data\n`;
+      } else if (hasModels) {
+        diagram += `        Entities["Models & Entities<br/>(${orm || 'ORM'})"]:::data\n`;
       }
-      diagram += `    end\n`;
-    }
+      diagram += `        Database[("Database / Storage")]:::db\n`;
+      diagram += `    end\n\n`;
 
-    return diagram;
+      // Dynamic Connections
+      diagram += `    Client --> Router\n`;
+      if (hasUi) {
+        diagram += `    Client --> UiComponents\n`;
+        diagram += `    UiComponents --> Router\n`;
+      }
+
+      let previousNode = 'Router';
+      if (hasDtos) {
+        diagram += `    ${previousNode} --> DTOs\n`;
+        previousNode = 'DTOs';
+      }
+
+      if (hasControllers) {
+        diagram += `    ${previousNode} --> Controllers\n`;
+        previousNode = 'Controllers';
+      }
+
+      if (hasServices) {
+        diagram += `    ${previousNode} --> Services\n`;
+        previousNode = 'Services';
+      }
+
+      if (hasRepositories) {
+        diagram += `    ${previousNode} --> Repositories\n`;
+        diagram += `    Repositories --> Database\n`;
+      } else if (hasModels) {
+        diagram += `    ${previousNode} --> Entities\n`;
+        diagram += `    Entities --> Database\n`;
+      } else {
+        diagram += `    ${previousNode} --> Database\n`;
+      }
+
+      if (modules.length > 0) {
+        diagram += `\n    subgraph ModulesLayer ["📦 Detected Feature Modules (${modules.length})"]\n`;
+        modules.slice(0, 6).forEach((mod, idx) => {
+          diagram += `        Mod_${idx}["${mod} Module"]:::service\n`;
+        });
+        if (modules.length > 6) {
+          diagram += `        Mod_More["...and ${modules.length - 6} more modules"]:::service\n`;
+        }
+        diagram += `    end\n`;
+      }
+
+      return diagram;
+    }
   }
 
   // Generic / CLI projects
-  return `flowchart TD
+  const hasEntry = (components['Source Files']?.files || []).some((f) =>
+    /(?:^|\/)(?:index|cli|main|bin)\.[a-z]+$/i.test(f)
+  );
+  const hasSource = (components['Source Files']?.count ?? 0) > 0;
+  const hasTests = (components['Test Files']?.count ?? 0) > 0;
+
+  let diagram = `flowchart TD
     classDef client fill:#E0F2FE,stroke:#0284C7,stroke-width:2px,color:#0369A1;
     classDef core fill:#DCFCE7,stroke:#16A34A,stroke-width:2px,color:#15803D;
     classDef test fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#B45309;
 
     subgraph App ["CLI & Application Architecture"]
-        Entry["Entrypoint CLI (bin/)"]:::client
-        Core["Core Modules & Generators (src/)"]:::core
-        Tests["Automated Test Suites (tests/)"]:::test
-    end
-
-    Entry --> Core
-    Tests -.-> Core
 `;
+  if (hasEntry) {
+    diagram += `        Entry["Entrypoint CLI (bin/)"]:::client\n`;
+  }
+  if (hasSource) {
+    diagram += `        Source["Core Modules & Generators (src/)"]:::core\n`;
+  }
+  if (hasTests) {
+    diagram += `        Tests["Automated Test Suites (tests/)"]:::test\n`;
+  }
+  if (!hasEntry && !hasSource && !hasTests) {
+    diagram += `        Source["Source Files"]:::core\n`;
+  }
+  diagram += `    end\n\n`;
+
+  if (hasEntry && hasSource) {
+    diagram += `    Entry --> Source\n`;
+  }
+  if (hasTests && hasSource) {
+    diagram += `    Tests -.-> Source\n`;
+  }
+
+  return diagram;
 }
 
 /**
  * Generate full ARCHITECTURE.md markdown content.
  */
 export function generateArchitectureMarkdown(scanResult: ScanResult): string {
-  const { projectInfo, totalFilesScanned, components, modules, directoryTree, scanDurationMs } = scanResult;
-  const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+  const { projectInfo, totalFilesScanned, components, modules, directoryTree } = scanResult;
 
   const mermaid = generateMermaidDiagram(scanResult);
 
   // Component statistics rows
   const componentRows = Object.entries(components)
-    .map(([key, comp]) => {
+    .map(([, comp]) => {
       const sampleFiles = comp.files.slice(0, 3).map((f) => `\`${f}\``).join(', ');
       const moreSuffix = comp.files.length > 3 ? ` *(+${comp.files.length - 3} more)*` : '';
       return `| **${comp.name}** | \`${comp.count}\` | ${comp.description} | ${sampleFiles || '-'} ${moreSuffix} |`;
@@ -315,7 +338,7 @@ ${modules.map((m) => `- **\`${m}\`**`).join('\n')}
 
   return `# 🏛️ Architecture Overview: ${projectInfo.name}
 
-> Auto-generated by **[LaraTS CLI](https://github.com/SidiqFatuh187/Larats)** on \`${timestamp}\`.  
+> Auto-generated by **[LaraTS CLI](https://github.com/SidiqFatuh187/Larats)**.  
 > **100% Local & Safe:** Generated entirely in offline mode via local filesystem manifest & structure analysis. Zero data transmitted.
 
 ---
@@ -328,7 +351,6 @@ ${modules.map((m) => `- **\`${m}\`**`).join('\n')}
 | **Project Type** | **${projectInfo.type.toUpperCase()}** |
 | **Detected Stack** | \`${projectInfo.summary}\` |
 | **Scanned Files** | \`${totalFilesScanned}\` files indexed (safe ignore filter applied) |
-| **Scan Duration** | \`${scanDurationMs} ms\` |
 
 ---
 

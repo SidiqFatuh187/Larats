@@ -43,8 +43,8 @@ export function laravelModelTemplate(names: NamingVariations, namespace: string 
 
 namespace ${namespace};
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\\Database\\Eloquent\\Factories\\HasFactory;
+use Illuminate\\Database\\Eloquent\\Model;
 
 class ${names.pascal} extends Model
 {
@@ -99,15 +99,18 @@ export function laravelControllerTemplate(
   const serviceNamespace = options.serviceNamespace || 'App\\Services';
   const requestNamespace = options.requestNamespace || 'App\\Http\\Requests';
 
+  const baseControllerImport =
+    namespace !== 'App\\Http\\Controllers' ? 'use App\\Http\\Controllers\\Controller;\n' : '';
+
   return `<?php
 
 namespace ${namespace};
 
-use ${modelNamespace}\\${names.pascal};
+${baseControllerImport}use ${modelNamespace}\\${names.pascal};
 use ${serviceNamespace}\\${names.pascal}Service;
 use ${requestNamespace}\\${names.pascal}Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\\Http\\JsonResponse;
+use Illuminate\\Http\\Request;
 
 class ${names.pascal}Controller extends Controller
 {
@@ -200,7 +203,7 @@ export function laravelServiceTemplate(
 namespace ${namespace};
 
 use ${modelNamespace}\\${names.pascal};
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\\Database\\Eloquent\\Collection;
 
 class ${names.pascal}Service
 {
@@ -288,7 +291,7 @@ export function laravelRequestTemplate(names: NamingVariations, namespace: strin
 
 namespace ${namespace};
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\\Foundation\\Http\\FormRequest;
 
 class ${names.pascal}Request extends FormRequest
 {
@@ -332,9 +335,9 @@ class ${names.pascal}Request extends FormRequest
 export function laravelMigrationTemplate(names: NamingVariations): string {
   return `<?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\\Database\\Migrations\\Migration;
+use Illuminate\\Database\\Schema\\Blueprint;
+use Illuminate\\Support\\Facades\\Schema;
 
 return new class extends Migration
 {

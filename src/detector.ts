@@ -85,12 +85,18 @@ export async function detectProjectType(targetDir: string = process.cwd()): Prom
     // Check for modular architecture
     const appModulesDir = path.join(resolvedDir, 'app', 'Modules');
     const rootModulesDir = path.join(resolvedDir, 'modules');
-    const isModular = fs.existsSync(appModulesDir) || fs.existsSync(rootModulesDir);
+    const rootModulesCapDir = path.join(resolvedDir, 'Modules');
+    const isModular =
+      fs.existsSync(appModulesDir) ||
+      fs.existsSync(rootModulesDir) ||
+      fs.existsSync(rootModulesCapDir);
     const modulesDir = fs.existsSync(appModulesDir)
       ? 'app/Modules'
       : fs.existsSync(rootModulesDir)
         ? 'modules'
-        : undefined;
+        : fs.existsSync(rootModulesCapDir)
+          ? 'Modules'
+          : undefined;
 
     const extras: string[] = [];
     if (hasFilament) extras.push('Filament');
