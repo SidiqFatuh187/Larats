@@ -138,3 +138,4 @@ test('CLI: scaffold dry-run writes no files to disk', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 });
+

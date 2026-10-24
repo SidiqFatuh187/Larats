@@ -25,3 +25,4 @@ const child = spawn(process.execPath, [tsxCli, '--test', ...files], {
 child.on('exit', (code) => {
   process.exit(code ?? 1);
 });
+

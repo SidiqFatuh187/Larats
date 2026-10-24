@@ -49,3 +49,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Laravel and TypeScript project detection.
 - Component scanning and Mermaid flowchart generation.
 - Interactive scaffolding for standard and modular directory architectures.
+
