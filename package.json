@@ -40,7 +40,7 @@
     "dev": "tsup --watch",
     "lint": "tsc --noEmit",
     "start": "node dist/index.js",
-    "test": "tsx --test tests/**/*.test.ts"
+    "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.10.1",
