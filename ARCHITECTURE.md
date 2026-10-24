@@ -12,7 +12,7 @@
 | **Project Name** | `larats` |
 | **Project Type** | **TYPESCRIPT** |
 | **Detected Stack** | `TypeScript (TypeScript)` |
-| **Scanned Files** | `23` files indexed (safe ignore filter applied) |
+| **Scanned Files** | `27` files indexed (safe ignore filter applied) |
 
 ---
 
@@ -59,6 +59,9 @@ flowchart TD
 Clean, high-level directory tree showing key folders (ignoring build artifacts, vendor files, and sensitive keys):
 
 ```text
+├── scripts/
+│   ├── gen-sample.ts
+│   └── run-tests.mjs
 ├── src/
 │   ├── generator/
 │   │   ├── markdown.ts
@@ -81,9 +84,11 @@ Clean, high-level directory tree showing key folders (ignoring build artifacts, 
 │   ├── scanner.test.ts
 │   └── ... (1 more files/folders)
 ├── ARCHITECTURE.md
+├── CHANGELOG.md
 ├── LICENSE
 ├── README.md
 ├── package.json
+├── tsconfig.check.json
 ├── tsconfig.json
 └── tsup.config.ts
 ```
