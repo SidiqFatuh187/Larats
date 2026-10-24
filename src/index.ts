@@ -7,7 +7,7 @@ import { scanProject } from './scanner.js';
 import { generateArchitectureMarkdown } from './generator/markdown.js';
 import { scaffoldModule, type ScaffoldResult } from './generator/scaffolder.js';
 
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 
 function showHelp() {
   console.log(`
